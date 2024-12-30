@@ -1,6 +1,6 @@
 package com.enderio.machines.mixin;
 
-import com.enderio.EnderIOBase;
+import com.enderio.base.api.EnderIO;
 import com.enderio.machines.common.blocks.alloy.AlloySmeltingRecipe;
 import com.enderio.machines.common.config.MachinesConfig;
 import com.google.gson.Gson;
@@ -105,7 +105,7 @@ public abstract class RecipeManagerMixin extends SimpleJsonResourceReloadListene
                 accessor.getExperience(), true);
 
         String path = "smelting/" + originalId.getNamespace() + "/" + originalId.getPath();
-        ResourceLocation id = EnderIOBase.loc(path);
+        ResourceLocation id = EnderIO.loc(path);
         return Optional.of(new RecipeHolder<>(id, recipe));
     }
 }

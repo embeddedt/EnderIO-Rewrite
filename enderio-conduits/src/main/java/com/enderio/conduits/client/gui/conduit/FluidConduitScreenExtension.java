@@ -1,6 +1,6 @@
 package com.enderio.conduits.client.gui.conduit;
 
-import com.enderio.EnderIOBase;
+import com.enderio.base.api.EnderIO;
 import com.enderio.conduits.api.ConduitDataAccessor;
 import com.enderio.conduits.api.screen.ConduitScreenExtension;
 import com.enderio.base.common.lang.EIOLang;
@@ -32,7 +32,7 @@ import java.util.function.Supplier;
 
 public final class FluidConduitScreenExtension implements ConduitScreenExtension {
 
-    private static final ResourceLocation WIDGET_TEXTURE = EnderIOBase.loc("textures/gui/fluidbackground.png");
+    private static final ResourceLocation WIDGET_TEXTURE = EnderIO.loc("textures/gui/fluidbackground.png");
 
     @Override
     public List<AbstractWidget> createWidgets(Screen screen, ConduitDataAccessor conduitDataAccessor, UpdateDispatcher updateConduitData,

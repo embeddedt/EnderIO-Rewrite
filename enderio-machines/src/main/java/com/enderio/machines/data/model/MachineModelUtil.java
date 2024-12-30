@@ -1,6 +1,6 @@
 package com.enderio.machines.data.model;
 
-import com.enderio.EnderIOBase;
+import com.enderio.base.api.EnderIO;
 import com.enderio.core.data.model.ModelHelper;
 import com.enderio.machines.common.block.LegacyProgressMachineBlock;
 import com.enderio.machines.common.block.SolarPanelBlock;
@@ -45,14 +45,14 @@ public class MachineModelUtil {
             SolarPanelTier tier) {
         String tierName = tier.name().toLowerCase(Locale.ROOT);
         var baseModel = prov.models()
-                .withExistingParent(ctx.getName() + "_base", EnderIOBase.loc("block/photovoltaic_cell_base"))
+                .withExistingParent(ctx.getName() + "_base", EnderIO.loc("block/photovoltaic_cell_base"))
                 .texture("panel", "block/" + tierName + "_top")
                 .texture("side", "block/" + tierName + "_side");
         var sideModel = prov.models()
-                .withExistingParent(ctx.getName() + "_side", EnderIOBase.loc("block/photovoltaic_cell_side"))
+                .withExistingParent(ctx.getName() + "_side", EnderIO.loc("block/photovoltaic_cell_side"))
                 .texture("side", "block/" + tierName + "_side");
         var cornerModel = prov.models()
-                .withExistingParent(ctx.getName() + "_corner", EnderIOBase.loc("block/photovoltaic_cell_corner"))
+                .withExistingParent(ctx.getName() + "_corner", EnderIO.loc("block/photovoltaic_cell_corner"))
                 .texture("side", "block/" + tierName + "_side");
         var builder = prov.getMultipartBuilder(ctx.get());
         builder.part().modelFile(baseModel).addModel();
@@ -69,7 +69,7 @@ public class MachineModelUtil {
     public static void solarPanel(RegiliteItemModelProvider prov, DataGenContext<Item, ? extends Item> ctx,
             SolarPanelTier tier) {
         String tierName = tier.name().toLowerCase(Locale.ROOT);
-        prov.withExistingParent(ctx.getName(), EnderIOBase.loc("item/photovoltaic_cell"))
+        prov.withExistingParent(ctx.getName(), EnderIO.loc("item/photovoltaic_cell"))
                 .texture("side", "block/" + tierName + "_side")
                 .texture("panel", "block/" + tierName + "_top");
     }
@@ -97,12 +97,12 @@ public class MachineModelUtil {
         return prov.models()
                 .withExistingParent(model.getPath() + "_combined", prov.mcLoc("block/block"))
                 .texture("particle",
-                        ctx.getName().equals("enchanter") ? EnderIOBase.loc("block/dark_steel_pressure_plate")
+                        ctx.getName().equals("enchanter") ? EnderIO.loc("block/dark_steel_pressure_plate")
                                 : ResourceLocation.fromNamespaceAndPath(model.getNamespace(),
                                         "block/" + ctx.getName() + "_front"))
                 .customLoader(CompositeModelBuilder::begin)
                 .child("machine", ModelHelper.getExistingAsBuilder(prov.models(), model))
-                .child("overlay", ModelHelper.getExistingAsBuilder(prov.models(), EnderIOBase.loc("block/io_overlay")))
+                .child("overlay", ModelHelper.getExistingAsBuilder(prov.models(), EnderIO.loc("block/io_overlay")))
                 .end();
     }
 
