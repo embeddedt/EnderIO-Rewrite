@@ -2,15 +2,16 @@ package com.enderio.machines.client.gui.screen;
 
 import com.enderio.machines.common.blocks.enderface.EnderfaceBlockEntity;
 import com.enderio.machines.common.config.MachinesConfig;
-import com.enderio.machines.common.config.common.MachinesCommonConfig;
 import com.enderio.machines.common.network.EnderfaceInteractPacket;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.BufferUploader;
 import com.mojang.blaze3d.vertex.ByteBufferBuilder;
 import com.mojang.blaze3d.vertex.MeshData;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexBuffer;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.blaze3d.vertex.VertexSorting;
 import com.mojang.math.Axis;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.client.Minecraft;
@@ -37,7 +38,6 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import net.neoforged.neoforge.client.model.pipeline.VertexConsumerWrapper;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Matrix4d;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -75,18 +75,10 @@ public class EnderfaceScreen extends Screen {
     // private boolean animateInX = true;
     private boolean animateInX = false;
     private boolean animateInY = false;
-    // private boolean animating = true;
-    float animationDuration = 60;
 
     private final Vector3f origin = new Vector3f();
-    private final Matrix4d pitchRot = new Matrix4d();
-    private final Matrix4d yawRot = new Matrix4d();
-
-    private float scaleAnimX;
 
     private final int range;
-
-    boolean dragging = false;
 
     private float distance;
 
@@ -96,7 +88,14 @@ public class EnderfaceScreen extends Screen {
     private Direction selectedSide;
     private Vec3 selectedLocation;
 
-    private Object2ObjectOpenHashMap<RenderType, BufferBuilder> worldBufferBuilders = new Object2ObjectOpenHashMap<>();
+    private Vec3 eyePosition;
+
+    private final Object2ObjectOpenHashMap<RenderType, BufferBuilder> worldBufferBuilders = new Object2ObjectOpenHashMap<>();
+    private final Object2ObjectOpenHashMap<RenderType, VertexBuffer> worldGeometry = new Object2ObjectOpenHashMap<>();
+    private final Object2ObjectOpenHashMap<RenderType, MeshData.SortState> worldSortStates = new Object2ObjectOpenHashMap<>();
+
+    private boolean worldNeedsRebuild = true;
+    private final List<BlockEntity> worldBlockEntities = new ArrayList<>();
 
     public EnderfaceScreen(BlockPos pos, ClientLevel world) {
         super(Component.literal("Ender IO"));
@@ -115,8 +114,6 @@ public class EnderfaceScreen extends Screen {
         }
 
         origin.set(enderfacePos.getX() + 0.5, enderfacePos.getY() + 0.5, enderfacePos.getZ() + 0.5);
-        pitchRot.identity();
-        yawRot.identity();
 
         chunkLoaded = world.isLoaded(enderfacePos);
     }
@@ -198,18 +195,46 @@ public class EnderfaceScreen extends Screen {
         return builder;
     }
 
-    private void renderCompiledLayer(RenderType type) {
+    private void uploadCompiledLayer(RenderType type) {
         var builder = worldBufferBuilders.get(type);
         MeshData meshdata = builder != null ? builder.build() : null;
         if (meshdata != null) {
             if (type.sortOnUpload()) {
-                meshdata.sortQuads(ENDERFACE_BUFFERS.get(type), RenderSystem.getVertexSorting());
+                var sortState = meshdata.sortQuads(ENDERFACE_BUFFERS.get(type), RenderSystem.getVertexSorting());
+
+                worldSortStates.put(type, sortState);
+            }
+
+            VertexBuffer buffer = new VertexBuffer(VertexBuffer.Usage.STATIC);
+            buffer.bind();
+            buffer.upload(meshdata);
+
+            worldGeometry.put(type, buffer);
+        }
+    }
+
+    private void renderCompiledLayer(PoseStack.Pose pose, RenderType type) {
+        var vertexBuffer = worldGeometry.get(type);
+
+        if (vertexBuffer != null) {
+            var sortState = worldSortStates.get(type);
+            vertexBuffer.bind();
+
+            if (sortState != null) {
+                // Resort
+                // TODO not working properly, eye position is probably wrong
+                var byteBuilder = ENDERFACE_BUFFERS.get(type);
+                var indexBuffer = sortState.buildSortedIndexBuffer(byteBuilder, VertexSorting.byDistance((float)eyePosition.x, (float)eyePosition.y, (float)eyePosition.z));
+                vertexBuffer.uploadIndexBuffer(indexBuffer);
+                byteBuilder.clear();
             }
 
             type.setupRenderState();
             var chunkOffset = RenderSystem.getShader().CHUNK_OFFSET;
             chunkOffset.set((float)0, (float)0, (float)0);
-            BufferUploader.drawWithShader(meshdata);
+            var modelView = new Matrix4f(RenderSystem.getModelViewMatrix());
+            modelView.mul(pose.pose());
+            vertexBuffer.drawWithShader(modelView, RenderSystem.getProjectionMatrix(), RenderSystem.getShader());
             type.clearRenderState();
         }
     }
@@ -229,6 +254,10 @@ public class EnderfaceScreen extends Screen {
         return blockTransform;
     }
 
+    public void setWorldNeedsRebuild() {
+        this.worldNeedsRebuild = true;
+    }
+
     private void renderWorld(GuiGraphics graphics, float partialTick) {
         Quaternionf blockTransform = getGuiWorldTransform();
 
@@ -243,58 +272,76 @@ public class EnderfaceScreen extends Screen {
         var dispatcher = Minecraft.getInstance().getBlockRenderer();
         var randomSource = new SingleThreadedRandomSource(42L);
 
-        List<BlockEntity> blockEntities = new ArrayList<>();
-
-        getShownPositions().forEach(pos -> {
-            var state = world.getBlockState(pos);
-
-            if (state.getRenderShape() != RenderShape.INVISIBLE) {
-                randomSource.setSeed(42L);
-
-                var model = dispatcher.getBlockModel(state);
-                var data = model.getModelData(world, pos, state, world.getModelData(pos));
-                for (RenderType type : model.getRenderTypes(state, randomSource, data)) {
-                    randomSource.setSeed(42L);
-                    var buffer = getBuilderForLayer(type);
-                    graphics.pose().pushPose();
-                    graphics.pose().translate(pos.getX() - origin.x, pos.getY() - origin.y, pos.getZ() - origin.z);
-                    dispatcher.renderBatched(state, pos, world, graphics.pose(), buffer, true, randomSource, data, type);
-                    graphics.pose().popPose();
-                }
-            }
-
-            var fluidState = state.getFluidState();
-
-            if (!fluidState.isEmpty()) {
-                float xTransform = (pos.getX() & 15);
-                float yTransform = (pos.getY() & 15);
-                float zTransform = (pos.getZ() & 15);
-                graphics.pose().pushPose();
-                graphics.pose().translate(pos.getX() - origin.x, pos.getY() - origin.y, pos.getZ() - origin.z);
-                var pose = graphics.pose().last();
-                // Use wrapper to make fluid rendering conform to PoseStack matrices
-                var buffer = new VertexConsumerWrapper(getBuilderForLayer(ItemBlockRenderTypes.getRenderLayer(fluidState))) {
-                    @Override
-                    public VertexConsumer addVertex(float x, float y, float z) {
-                        parent.addVertex(pose,x - xTransform, y - yTransform, z - zTransform);
-                        return this;
-                    }
-                };
-                dispatcher.renderLiquid(pos, world, buffer, state, fluidState);
-                graphics.pose().popPose();
-            }
-
-            var blockEntity = world.getBlockEntity(pos);
-
-            if (blockEntity != null) {
-                blockEntities.add(blockEntity);
-            }
-        });
-
-        LAYERS_BEFORE_BLOCK_ENTITIES.forEach(this::renderCompiledLayer);
-
         var blockEntityDispatcher = Minecraft.getInstance().getBlockEntityRenderDispatcher();
-        for (var blockEntity : blockEntities) {
+
+        if (worldNeedsRebuild) {
+            worldGeometry.values().forEach(VertexBuffer::close);
+            worldGeometry.clear();
+            worldBlockEntities.clear();
+
+            var pose = new PoseStack();
+
+            getShownPositions().forEach(pos -> {
+                var state = world.getBlockState(pos);
+
+                if (state.getRenderShape() != RenderShape.INVISIBLE) {
+                    randomSource.setSeed(42L);
+
+                    var model = dispatcher.getBlockModel(state);
+                    var data = model.getModelData(world, pos, state, world.getModelData(pos));
+                    for (RenderType type : model.getRenderTypes(state, randomSource, data)) {
+                        randomSource.setSeed(42L);
+                        var buffer = getBuilderForLayer(type);
+                        pose.pushPose();
+                        pose.translate(pos.getX() - origin.x, pos.getY() - origin.y, pos.getZ() - origin.z);
+                        dispatcher.renderBatched(state, pos, world, pose, buffer, true, randomSource, data, type);
+                        pose.popPose();
+                    }
+                }
+
+                var fluidState = state.getFluidState();
+
+                if (!fluidState.isEmpty()) {
+                    float xTransform = (pos.getX() & 15);
+                    float yTransform = (pos.getY() & 15);
+                    float zTransform = (pos.getZ() & 15);
+                    pose.pushPose();
+                    pose.translate(pos.getX() - origin.x, pos.getY() - origin.y, pos.getZ() - origin.z);
+                    var offset = pose.last();
+                    // Use wrapper to make fluid rendering conform to PoseStack matrices
+                    var buffer = new VertexConsumerWrapper(getBuilderForLayer(ItemBlockRenderTypes.getRenderLayer(fluidState))) {
+                        @Override
+                        public VertexConsumer addVertex(float x, float y, float z) {
+                            parent.addVertex(offset,x - xTransform, y - yTransform, z - zTransform);
+                            return this;
+                        }
+                    };
+                    dispatcher.renderLiquid(pos, world, buffer, state, fluidState);
+                    pose.popPose();
+                }
+
+                var blockEntity = world.getBlockEntity(pos);
+
+                if (blockEntity != null && blockEntityDispatcher.getRenderer(blockEntity) != null) {
+                    worldBlockEntities.add(blockEntity);
+                }
+            });
+
+            worldBufferBuilders.keySet().forEach(this::uploadCompiledLayer);
+            worldBufferBuilders.clear();
+
+            ENDERFACE_BUFFERS.values().forEach(ByteBufferBuilder::clear);
+
+            worldNeedsRebuild = false;
+        }
+
+        for (var layer : LAYERS_BEFORE_BLOCK_ENTITIES) {
+            this.renderCompiledLayer(graphics.pose().last(), layer);
+        }
+
+        VertexBuffer.unbind();
+
+        for (var blockEntity : worldBlockEntities) {
             var renderer = blockEntityDispatcher.getRenderer(blockEntity);
             if (renderer != null) {
                 var pos = blockEntity.getBlockPos();
@@ -305,11 +352,12 @@ public class EnderfaceScreen extends Screen {
             }
         }
 
+        // Force block entities to be flushed
         graphics.bufferSource().endBatch();
 
-        LAYERS_AFTER_BLOCK_ENTITIES.forEach(this::renderCompiledLayer);
-
-        graphics.bufferSource().endBatch();
+        for (var layer : LAYERS_AFTER_BLOCK_ENTITIES) {
+            this.renderCompiledLayer(graphics.pose().last(), layer);
+        }
 
         if (DEBUG_SELECTION_POSITION && selectedLocation != null) {
             graphics.pose().pushPose();
@@ -322,12 +370,7 @@ public class EnderfaceScreen extends Screen {
             graphics.pose().popPose();
         }
 
-        ENDERFACE_BUFFERS.values().forEach(ByteBufferBuilder::clear);
-        worldBufferBuilders.clear();
-
         graphics.pose().popPose();
-
-        //RenderSystem.setProjectionMatrix(oldProjMatrix, oldSorting);
     }
 
     private static Vec3 transform(Vec3 vec, Matrix4f transform) {
@@ -364,7 +407,7 @@ public class EnderfaceScreen extends Screen {
 
     private record HitCandidate(BlockHitResult hitResult, BlockPos realHitPos, Vec3 locationOffset) {}
 
-    private void findSelection(int mouseX, int mouseY) {
+    private void updateCamera(int mouseX, int mouseY) {
         Quaternionf rotPitch = Axis.XN.rotationDegrees(pitch);
         Quaternionf rotYaw = Axis.YP.rotationDegrees(yaw);
 
@@ -393,7 +436,7 @@ public class EnderfaceScreen extends Screen {
             }
         });
 
-        Vec3 eyePosition = transform(RAY_START, rayTransform).add(origin.x, origin.y, origin.z);
+        eyePosition = transform(RAY_START, rayTransform).add(origin.x, origin.y, origin.z);
 
         var candidate = candidates.stream().min(Comparator.comparingDouble(entry -> entry.realHitPos().distToCenterSqr(eyePosition))).orElse(null);
 
@@ -420,9 +463,8 @@ public class EnderfaceScreen extends Screen {
         if (!animateInX && !animateInY) {
 
             if (chunkLoaded) {
+                updateCamera(par1, par2);
                 renderWorld(graphics, partialTick);
-
-                findSelection(par1, par2);
             } else {
                 graphics.drawCenteredString(
                     Minecraft.getInstance().font,
