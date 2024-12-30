@@ -15,8 +15,8 @@ public class AversionObeliskMenu extends ObeliskMenu<AversionObeliskBlockEntity>
     }
 
     public AversionObeliskMenu(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
-        super(MachineMenus.AVERSION_OBELISK.get(), MachineBlockEntities.AVERSION_OBELISK.get(), containerId,
-                playerInventory, buf);
+        super(MachineMenus.AVERSION_OBELISK.get(), containerId, playerInventory, buf,
+                MachineBlockEntities.AVERSION_OBELISK.get());
         addSlots();
     }
 

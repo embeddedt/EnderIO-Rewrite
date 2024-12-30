@@ -32,6 +32,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.ItemInteractionResult;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -344,13 +345,15 @@ public class ConduitBundleBlock extends Block implements EntityBlock, SimpleWate
             return Optional.of(ItemInteractionResult.FAIL);
         }
 
+        Level level = blockEntity.getLevel();
+        BlockPos blockpos = blockEntity.getBlockPos();
+
+        int lightLevelBefore = level.getLightEmission(blockpos);
+
         blockEntity.getBundle().facade(stack);
         if (!player.getAbilities().instabuild) {
             stack.shrink(1);
         }
-
-        Level level = blockEntity.getLevel();
-        BlockPos blockpos = blockEntity.getBlockPos();
 
         BlockState blockState = level.getBlockState(blockpos);
 
@@ -358,6 +361,11 @@ public class ConduitBundleBlock extends Block implements EntityBlock, SimpleWate
         level.playSound(player, blockpos, soundtype.getPlaceSound(), SoundSource.BLOCKS,
                 (soundtype.getVolume() + 1.0F) / 2.0F, soundtype.getPitch() * 0.8F);
         level.gameEvent(GameEvent.BLOCK_PLACE, blockpos, GameEvent.Context.of(player, blockState));
+
+        // Handle light update
+        if (lightLevelBefore != level.getLightEmission(blockpos)) {
+            level.getLightEngine().checkBlock(blockpos);
+        }
 
         return Optional.of(ItemInteractionResult.sidedSuccess(isClientSide));
     }
@@ -539,7 +547,14 @@ public class ConduitBundleBlock extends Block implements EntityBlock, SimpleWate
                     blockEntity.dropFacadeItem();
                 }
 
+                int lightLevelBefore = level.getLightEmission(pos);
+
                 blockEntity.getBundle().clearFacade();
+
+                // Handle light update
+                if (lightLevelBefore != level.getLightEmission(pos)) {
+                    level.getLightEngine().checkBlock(pos);
+                }
             } else {
                 Holder<Conduit<?>> conduit = blockEntity.getShape()
                         .getConduit(((BlockHitResult) hit).getBlockPos(), hit);
@@ -639,18 +654,59 @@ public class ConduitBundleBlock extends Block implements EntityBlock, SimpleWate
 
     // endregion
 
+    private Optional<Block> getFacadeBlock(BlockGetter level, BlockPos pos) {
+        if (level.getBlockEntity(pos) instanceof ConduitBundleBlockEntity conduit) {
+            return conduit.getBundle().facade();
+        }
+
+        return Optional.empty();
+    }
+
     @Override
     public BlockState getAppearance(BlockState state, BlockAndTintGetter level, BlockPos pos, Direction side,
             @Nullable BlockState queryState, @Nullable BlockPos queryPos) {
 
-        if (level.getBlockEntity(pos) instanceof ConduitBundleBlockEntity conduit) {
-            Optional<Block> facade = conduit.getBundle().facade();
-            if (facade.isPresent()) {
-                return facade.get().defaultBlockState();
-            }
+        Optional<Block> facade = getFacadeBlock(level, pos);
+        if (facade.isPresent()) {
+            return facade.get().defaultBlockState();
         }
 
         return super.getAppearance(state, level, pos, side, queryState, queryPos);
+    }
+
+    @Override
+    public int getLightEmission(BlockState state, BlockGetter level, BlockPos pos) {
+        Optional<Block> facade = getFacadeBlock(level, pos);
+        if (facade.isPresent()) {
+            return facade.get().getLightEmission(facade.get().defaultBlockState(), level, pos);
+        }
+
+        return super.getLightEmission(state, level, pos);
+    }
+
+    @Override
+    public float getFriction(BlockState state, LevelReader level, BlockPos pos, @Nullable Entity entity) {
+        Optional<Block> facade = getFacadeBlock(level, pos);
+        if (facade.isPresent()) {
+            return facade.get().getFriction(facade.get().defaultBlockState(), level, pos, entity);
+        }
+
+        return super.getFriction(state, level, pos, entity);
+    }
+
+    @Override
+    public SoundType getSoundType(BlockState state, LevelReader level, BlockPos pos, @Nullable Entity entity) {
+        Optional<Block> facade = getFacadeBlock(level, pos);
+        if (facade.isPresent()) {
+            return facade.get().getSoundType(facade.get().defaultBlockState(), level, pos, entity);
+        }
+
+        return super.getSoundType(state, level, pos, entity);
+    }
+
+    @Override
+    public boolean supportsExternalFaceHiding(BlockState state) {
+        return true;
     }
 
     private record OpenInformation(Direction direction, Holder<Conduit<?>> conduit) {

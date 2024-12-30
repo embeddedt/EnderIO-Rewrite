@@ -17,9 +17,9 @@ public class VacuumMenu<T extends VacuumMachineBlockEntity<?>> extends MachineMe
         super(menuType, containerId, playerInventory, blockEntity);
     }
 
-    protected VacuumMenu(@Nullable MenuType<?> menuType, BlockEntityType<? extends T> blockEntityType, int containerId,
-            Inventory playerInventory, RegistryFriendlyByteBuf buf) {
-        super(menuType, blockEntityType, containerId, playerInventory, buf);
+    protected VacuumMenu(@Nullable MenuType<?> menuType, int containerId, Inventory playerInventory,
+            RegistryFriendlyByteBuf buf, BlockEntityType<? extends T>... blockEntityTypes) {
+        super(menuType, containerId, playerInventory, buf, blockEntityTypes);
     }
 
     public int getRange() {

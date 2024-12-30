@@ -16,8 +16,8 @@ public class VacuumChestMenu extends VacuumMenu<VacuumChestBlockEntity> {
     }
 
     public VacuumChestMenu(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
-        super(MachineMenus.VACUUM_CHEST.get(), MachineBlockEntities.VACUUM_CHEST.get(), containerId, playerInventory,
-                buf);
+        super(MachineMenus.VACUUM_CHEST.get(), containerId, playerInventory, buf,
+                MachineBlockEntities.VACUUM_CHEST.get());
         addSlots();
     }
 

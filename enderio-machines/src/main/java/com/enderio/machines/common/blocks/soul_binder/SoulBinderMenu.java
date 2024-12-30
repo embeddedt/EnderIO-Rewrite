@@ -28,8 +28,8 @@ public class SoulBinderMenu extends PoweredMachineMenu<SoulBinderBlockEntity> {
     }
 
     public SoulBinderMenu(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
-        super(MachineMenus.SOUL_BINDER.get(), MachineBlockEntities.SOUL_BINDER.get(), containerId, playerInventory,
-                buf);
+        super(MachineMenus.SOUL_BINDER.get(), containerId, playerInventory, buf,
+                MachineBlockEntities.SOUL_BINDER.get());
         addSlots();
 
         craftingProgressSlot = addSyncSlot(FloatSyncSlot.standalone());

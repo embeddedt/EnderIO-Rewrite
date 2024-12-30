@@ -21,8 +21,8 @@ public class SoulEngineMenu extends PoweredMachineMenu<SoulEngineBlockEntity> {
     }
 
     public SoulEngineMenu(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
-        super(MachineMenus.SOUL_ENGINE.get(), MachineBlockEntities.SOUL_ENGINE.get(), containerId, playerInventory,
-                buf);
+        super(MachineMenus.SOUL_ENGINE.get(), containerId, playerInventory, buf,
+                MachineBlockEntities.SOUL_ENGINE.get());
         addSlots();
 
         fluidTankSlot = addSyncSlot(FluidStorageSyncSlot.standalone());

@@ -22,7 +22,8 @@ public class FluidTankMenu extends MachineMenu<FluidTankBlockEntity> {
     }
 
     public FluidTankMenu(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
-        super(MachineMenus.FLUID_TANK.get(), MachineBlockEntities.FLUID_TANK.get(), containerId, playerInventory, buf);
+        super(MachineMenus.FLUID_TANK.get(), containerId, playerInventory, buf, MachineBlockEntities.FLUID_TANK.get(),
+                MachineBlockEntities.PRESSURIZED_FLUID_TANK.get());
         addSlots();
 
         fluidTankSlot = addSyncSlot(FluidStorageSyncSlot.standalone());

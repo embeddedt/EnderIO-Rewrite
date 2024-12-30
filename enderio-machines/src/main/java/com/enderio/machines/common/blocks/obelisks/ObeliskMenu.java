@@ -17,9 +17,9 @@ public class ObeliskMenu<T extends ObeliskBlockEntity<T>> extends PoweredMachine
         super(menuType, containerId, playerInventory, blockEntity);
     }
 
-    protected ObeliskMenu(@Nullable MenuType<?> menuType, BlockEntityType<? extends T> blockEntityType, int containerId,
-            Inventory playerInventory, RegistryFriendlyByteBuf buf) {
-        super(menuType, blockEntityType, containerId, playerInventory, buf);
+    protected ObeliskMenu(@Nullable MenuType<?> menuType, int containerId, Inventory playerInventory,
+            RegistryFriendlyByteBuf buf, BlockEntityType<? extends T>... blockEntityTypes) {
+        super(menuType, containerId, playerInventory, buf, blockEntityTypes);
     }
 
     public boolean isRangeVisible() {

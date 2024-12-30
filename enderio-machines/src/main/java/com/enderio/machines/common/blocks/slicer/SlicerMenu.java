@@ -23,8 +23,8 @@ public class SlicerMenu extends PoweredMachineMenu<SlicerBlockEntity> {
     }
 
     public SlicerMenu(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
-        super(MachineMenus.SLICE_N_SPLICE.get(), MachineBlockEntities.SLICE_AND_SPLICE.get(), containerId,
-                playerInventory, buf);
+        super(MachineMenus.SLICE_N_SPLICE.get(), containerId, playerInventory, buf,
+                MachineBlockEntities.SLICE_AND_SPLICE.get());
         addSlots();
 
         craftingProgressSlot = addSyncSlot(FloatSyncSlot.standalone());

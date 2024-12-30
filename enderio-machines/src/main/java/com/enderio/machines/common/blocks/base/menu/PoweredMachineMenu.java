@@ -25,9 +25,9 @@ public class PoweredMachineMenu<T extends PoweredMachineBlockEntity> extends Mac
                 EnergyStorageSyncSlot.readOnly(() -> EnergyStorageInfo.of(blockEntity.getEnergyStorage())));
     }
 
-    protected PoweredMachineMenu(@Nullable MenuType<?> menuType, BlockEntityType<? extends T> blockEntityType,
-            int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
-        super(menuType, blockEntityType, containerId, playerInventory, buf);
+    protected PoweredMachineMenu(@Nullable MenuType<?> menuType, int containerId, Inventory playerInventory,
+            RegistryFriendlyByteBuf buf, BlockEntityType<? extends T>... blockEntityTypes) {
+        super(menuType, containerId, playerInventory, buf, blockEntityTypes);
 
         energySyncSlot = addSyncSlot(EnergyStorageSyncSlot.standalone());
     }

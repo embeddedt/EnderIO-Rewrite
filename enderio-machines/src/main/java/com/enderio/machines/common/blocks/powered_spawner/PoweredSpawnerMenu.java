@@ -17,8 +17,8 @@ public class PoweredSpawnerMenu extends PoweredMachineMenu<PoweredSpawnerBlockEn
     }
 
     public PoweredSpawnerMenu(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
-        super(MachineMenus.POWERED_SPAWNER.get(), MachineBlockEntities.POWERED_SPAWNER.get(), containerId,
-                playerInventory, buf);
+        super(MachineMenus.POWERED_SPAWNER.get(), containerId, playerInventory, buf,
+                MachineBlockEntities.POWERED_SPAWNER.get());
         addSlots();
     }
 

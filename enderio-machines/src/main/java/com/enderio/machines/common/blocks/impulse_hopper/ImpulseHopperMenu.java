@@ -16,8 +16,8 @@ public class ImpulseHopperMenu extends PoweredMachineMenu<ImpulseHopperBlockEnti
     }
 
     public ImpulseHopperMenu(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
-        super(MachineMenus.IMPULSE_HOPPER.get(), MachineBlockEntities.IMPULSE_HOPPER.get(), containerId,
-                playerInventory, buf);
+        super(MachineMenus.IMPULSE_HOPPER.get(), containerId, playerInventory, buf,
+                MachineBlockEntities.IMPULSE_HOPPER.get());
         addSlots();
     }
 

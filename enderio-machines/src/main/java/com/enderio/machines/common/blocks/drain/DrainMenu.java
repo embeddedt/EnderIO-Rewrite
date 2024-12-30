@@ -25,7 +25,7 @@ public class DrainMenu extends PoweredMachineMenu<DrainBlockEntity> {
     }
 
     public DrainMenu(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
-        super(MachineMenus.DRAIN.get(), MachineBlockEntities.DRAIN.get(), containerId, playerInventory, buf);
+        super(MachineMenus.DRAIN.get(), containerId, playerInventory, buf, MachineBlockEntities.DRAIN.get());
         addSlots();
 
         fluidSlot = addSyncSlot(FluidStorageSyncSlot.standalone());

@@ -28,7 +28,7 @@ public class SagMillMenu extends PoweredMachineMenu<SagMillBlockEntity> {
     }
 
     public SagMillMenu(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
-        super(MachineMenus.SAG_MILL.get(), MachineBlockEntities.SAG_MILL.get(), containerId, playerInventory, buf);
+        super(MachineMenus.SAG_MILL.get(), containerId, playerInventory, buf, MachineBlockEntities.SAG_MILL.get());
         addSlots();
 
         craftingProgressSlot = addSyncSlot(FloatSyncSlot.standalone());

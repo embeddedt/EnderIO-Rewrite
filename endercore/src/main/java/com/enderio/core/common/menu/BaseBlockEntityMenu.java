@@ -27,11 +27,12 @@ public abstract class BaseBlockEntityMenu<T extends BlockEntity> extends BaseEnd
      * Client menu constructor.
      * Loads the block entity from the buffer and ensures the block entity type matches
      */
-    protected BaseBlockEntityMenu(@Nullable MenuType<?> menuType, BlockEntityType<? extends T> blockEntityType,
-            int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
+    @SafeVarargs
+    protected BaseBlockEntityMenu(@Nullable MenuType<?> menuType, int containerId, Inventory playerInventory,
+            RegistryFriendlyByteBuf buf, BlockEntityType<? extends T>... blockEntityTypes) {
         super(menuType, containerId, playerInventory);
         this.blockEntity = BlockEntityMenuHelper.getBlockEntityFrom(buf, playerInventory.player.level(),
-                blockEntityType);
+                blockEntityTypes);
     }
 
     public T getBlockEntity() {

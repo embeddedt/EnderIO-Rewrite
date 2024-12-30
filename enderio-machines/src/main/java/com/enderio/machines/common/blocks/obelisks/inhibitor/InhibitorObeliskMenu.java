@@ -13,8 +13,8 @@ public class InhibitorObeliskMenu extends ObeliskMenu<InhibitorObeliskBlockEntit
     }
 
     public InhibitorObeliskMenu(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
-        super(MachineMenus.INHIBITOR_OBELISK.get(), MachineBlockEntities.INHIBITOR_OBELISK.get(), containerId,
-                playerInventory, buf);
+        super(MachineMenus.INHIBITOR_OBELISK.get(), containerId, playerInventory, buf,
+                MachineBlockEntities.INHIBITOR_OBELISK.get());
     }
 
     private void addSlots() {

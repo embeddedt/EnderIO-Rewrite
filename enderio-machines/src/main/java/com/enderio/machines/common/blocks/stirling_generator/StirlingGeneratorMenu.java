@@ -20,8 +20,8 @@ public class StirlingGeneratorMenu extends PoweredMachineMenu<StirlingGeneratorB
     }
 
     public StirlingGeneratorMenu(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
-        super(MachineMenus.STIRLING_GENERATOR.get(), MachineBlockEntities.STIRLING_GENERATOR.get(), containerId,
-                playerInventory, buf);
+        super(MachineMenus.STIRLING_GENERATOR.get(), containerId, playerInventory, buf,
+                MachineBlockEntities.STIRLING_GENERATOR.get());
         addSlots();
 
         burnProgressSlot = addSyncSlot(FloatSyncSlot.standalone());

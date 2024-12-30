@@ -22,8 +22,8 @@ public class WiredChargerMenu extends PoweredMachineMenu<WiredChargerBlockEntity
     }
 
     public WiredChargerMenu(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
-        super(MachineMenus.WIRED_CHARGER.get(), MachineBlockEntities.WIRED_CHARGER.get(), containerId, playerInventory,
-                buf);
+        super(MachineMenus.WIRED_CHARGER.get(), containerId, playerInventory, buf,
+                MachineBlockEntities.WIRED_CHARGER.get());
         addSlots();
 
         chargeProgressSlot = addSyncSlot(FloatSyncSlot.standalone());

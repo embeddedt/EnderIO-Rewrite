@@ -1,11 +1,13 @@
 package com.enderio.machines.client.gui.widget.ioconfig;
 
 import com.enderio.EnderIOBase;
+import com.enderio.base.api.io.IOConfigurable;
 import com.enderio.base.common.lang.EIOLang;
 import com.enderio.core.client.gui.screen.BaseOverlay;
 import com.enderio.machines.client.rendering.model.ModelRenderUtil;
 import com.enderio.machines.common.blockentity.base.LegacyMachineBlockEntity;
 import com.enderio.machines.common.config.MachinesConfig;
+import com.enderio.machines.common.network.CycleIOConfigPacket;
 import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
@@ -54,6 +56,7 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.neoforged.neoforge.client.RenderTypeHelper;
 import net.neoforged.neoforge.client.model.data.ModelData;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
@@ -221,6 +224,11 @@ public class IOConfigOverlay extends BaseOverlay {
                     BlockEntity entity = MINECRAFT.level.getBlockEntity(selectedFace.blockPos);
                     if (entity instanceof LegacyMachineBlockEntity machine) {
                         machine.cycleIOMode(selectedFace.side);
+                        this.playDownSound(MINECRAFT.getSoundManager());
+                        return true;
+                    } else if (entity instanceof IOConfigurable) {
+                        PacketDistributor
+                                .sendToServer(new CycleIOConfigPacket(selectedFace.blockPos, selectedFace.side));
                         this.playDownSound(MINECRAFT.getSoundManager());
                         return true;
                     }

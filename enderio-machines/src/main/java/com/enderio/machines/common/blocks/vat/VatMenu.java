@@ -42,7 +42,7 @@ public class VatMenu extends MachineMenu<VatBlockEntity> {
     }
 
     public VatMenu(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
-        super(MachineMenus.VAT.get(), MachineBlockEntities.VAT.get(), containerId, playerInventory, buf);
+        super(MachineMenus.VAT.get(), containerId, playerInventory, buf, MachineBlockEntities.VAT.get());
         addSlots();
 
         craftingProgressSlot = addSyncSlot(FloatSyncSlot.standalone());

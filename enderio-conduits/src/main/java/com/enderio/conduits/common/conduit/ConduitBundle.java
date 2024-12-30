@@ -309,7 +309,7 @@ public final class ConduitBundle {
     }
 
     public void facade(ItemStack facadeItem) {
-        this.facadeItem = facadeItem.copy();
+        this.facadeItem = facadeItem.copyWithCount(1);
         onChanged();
     }
 

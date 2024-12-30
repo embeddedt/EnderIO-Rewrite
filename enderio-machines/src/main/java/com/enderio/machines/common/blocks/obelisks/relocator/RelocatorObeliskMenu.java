@@ -15,8 +15,8 @@ public class RelocatorObeliskMenu extends ObeliskMenu<RelocatorObeliskBlockEntit
     }
 
     public RelocatorObeliskMenu(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
-        super(MachineMenus.RELOCATOR_OBELISK.get(), MachineBlockEntities.RELOCATOR_OBELISK.get(), containerId,
-                playerInventory, buf);
+        super(MachineMenus.RELOCATOR_OBELISK.get(), containerId, playerInventory, buf,
+                MachineBlockEntities.RELOCATOR_OBELISK.get());
         addSlots();
     }
 

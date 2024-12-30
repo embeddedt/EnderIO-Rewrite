@@ -26,8 +26,8 @@ public class PrimitiveAlloySmelterMenu extends MachineMenu<PrimitiveAlloySmelter
     }
 
     public PrimitiveAlloySmelterMenu(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
-        super(MachineMenus.PRIMITIVE_ALLOY_SMELTER.get(), MachineBlockEntities.PRIMITIVE_ALLOY_SMELTER.get(),
-                containerId, playerInventory, buf);
+        super(MachineMenus.PRIMITIVE_ALLOY_SMELTER.get(), containerId, playerInventory, buf,
+                MachineBlockEntities.PRIMITIVE_ALLOY_SMELTER.get());
         addSlots();
 
         craftingProgressSlot = addSyncSlot(FloatSyncSlot.standalone());

@@ -29,8 +29,8 @@ public class AlloySmelterMenu extends PoweredMachineMenu<AlloySmelterBlockEntity
 
     // Client constructor
     public AlloySmelterMenu(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
-        super(MachineMenus.ALLOY_SMELTER.get(), MachineBlockEntities.ALLOY_SMELTER.get(), containerId, playerInventory,
-                buf);
+        super(MachineMenus.ALLOY_SMELTER.get(), containerId, playerInventory, buf,
+                MachineBlockEntities.ALLOY_SMELTER.get());
         addSlots();
 
         progressSlot = addSyncSlot(FloatSyncSlot.standalone());

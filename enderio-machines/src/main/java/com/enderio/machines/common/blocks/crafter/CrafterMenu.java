@@ -21,7 +21,7 @@ public class CrafterMenu extends PoweredMachineMenu<CrafterBlockEntity> {
     }
 
     public CrafterMenu(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
-        super(MachineMenus.CRAFTER.get(), MachineBlockEntities.CRAFTER.get(), containerId, playerInventory, buf);
+        super(MachineMenus.CRAFTER.get(), containerId, playerInventory, buf, MachineBlockEntities.CRAFTER.get());
         addSlots();
     }
 

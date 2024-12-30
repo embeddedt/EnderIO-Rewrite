@@ -177,6 +177,11 @@ public class ConduitBundleBlockEntity extends EnderBlockEntity {
                 loadNode(serverLevel, conduit, node);
             }
         }
+
+        // Now that the BE is loaded, update the blocklight.
+        if (bundle.hasFacade()) {
+            level.getLightEngine().checkBlock(worldPosition);
+        }
     }
 
     private void loadNode(ServerLevel serverLevel, Holder<Conduit<?>> conduit, ConduitGraphObject node) {
@@ -220,6 +225,14 @@ public class ConduitBundleBlockEntity extends EnderBlockEntity {
         var node = bundle.getNodeFor(conduit);
         conduit.value().onRemoved(node, level, getBlockPos());
         savedData.putUnloadedNodeIdentifier(conduit, this.worldPosition, node);
+    }
+
+    @Override
+    public void setRemoved() {
+        super.setRemoved();
+        if (level != null && level.isClientSide) {
+            FACADES.remove(worldPosition);
+        }
     }
 
     public void everyTick() {

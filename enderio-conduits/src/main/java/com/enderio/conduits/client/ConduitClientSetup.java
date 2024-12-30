@@ -42,12 +42,6 @@ public class ConduitClientSetup {
     public static final ModelResourceLocation CONDUIT_IO_OUT = loc("block/io/output");
     public static final ModelResourceLocation CONDUIT_IO_REDSTONE = loc("block/io/redstone");
 
-    public static final ModelResourceLocation CONDUIT_FACADE = loc("block/conduit_facade");
-    public static final ModelResourceLocation CONDUIT_FACADE_HARDENED = loc("block/conduit_facade_hardened");
-    public static final ModelResourceLocation CONDUIT_FACADE_TRANSLUCENT = loc("block/conduit_facade_translucent");
-    public static final ModelResourceLocation CONDUIT_FACADE_TRANSLUCENT_HARDENED = loc(
-            "block/conduit_facade_translucent_hardened");
-
     private ConduitClientSetup() {
     }
 

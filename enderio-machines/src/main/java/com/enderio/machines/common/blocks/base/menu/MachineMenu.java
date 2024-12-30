@@ -42,9 +42,9 @@ public abstract class MachineMenu<T extends MachineBlockEntity> extends BaseBloc
         statesSyncSlot = addSyncSlot(MachineStatesSyncSlot.readOnly(blockEntity::getMachineStates));
     }
 
-    protected MachineMenu(@Nullable MenuType<?> menuType, BlockEntityType<? extends T> blockEntityType, int containerId,
-            Inventory playerInventory, RegistryFriendlyByteBuf buf) {
-        super(menuType, blockEntityType, containerId, playerInventory, buf);
+    protected MachineMenu(@Nullable MenuType<?> menuType, int containerId, Inventory playerInventory,
+            RegistryFriendlyByteBuf buf, BlockEntityType<? extends T>... blockEntityTypes) {
+        super(menuType, containerId, playerInventory, buf, blockEntityTypes);
 
         if (getBlockEntity().supportsRedstoneControl()) {
             redstoneControlSlot = addUpdatableSyncSlot(EnumSyncSlot.standalone(RedstoneControl.class));

@@ -14,8 +14,8 @@ public class TravelAnchorMenu extends MachineMenu<TravelAnchorBlockEntity> {
     }
 
     public TravelAnchorMenu(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
-        super(MachineMenus.TRAVEL_ANCHOR.get(), MachineBlockEntities.TRAVEL_ANCHOR.get(), containerId, playerInventory,
-                buf);
+        super(MachineMenus.TRAVEL_ANCHOR.get(), containerId, playerInventory, buf,
+                MachineBlockEntities.TRAVEL_ANCHOR.get(), MachineBlockEntities.PAINTED_TRAVEL_ANCHOR.get());
         addSlots();
     }
 

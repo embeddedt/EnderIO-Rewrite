@@ -21,7 +21,7 @@ public class XPVacuumMenu extends VacuumMenu<XPVacuumBlockEntity> {
     }
 
     public XPVacuumMenu(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
-        super(MachineMenus.XP_VACUUM.get(), MachineBlockEntities.XP_VACUUM.get(), containerId, playerInventory, buf);
+        super(MachineMenus.XP_VACUUM.get(), containerId, playerInventory, buf, MachineBlockEntities.XP_VACUUM.get());
         addSlots();
 
         fluidTankSlot = addSyncSlot(FluidStorageSyncSlot.standalone());

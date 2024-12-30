@@ -20,8 +20,8 @@ public class PaintingMachineMenu extends PoweredMachineMenu<PaintingMachineBlock
     }
 
     public PaintingMachineMenu(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
-        super(MachineMenus.PAINTING_MACHINE.get(), MachineBlockEntities.PAINTING_MACHINE.get(), containerId,
-                playerInventory, buf);
+        super(MachineMenus.PAINTING_MACHINE.get(), containerId, playerInventory, buf,
+                MachineBlockEntities.PAINTING_MACHINE.get());
         addSlots();
 
         craftingProgressSlot = addSyncSlot(FloatSyncSlot.standalone());

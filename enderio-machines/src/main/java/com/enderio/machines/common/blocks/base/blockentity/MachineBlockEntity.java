@@ -10,6 +10,7 @@ import com.enderio.base.common.blockentity.Wrenchable;
 import com.enderio.machines.common.MachineNBTKeys;
 import com.enderio.machines.common.block.LegacyMachineBlock;
 import com.enderio.machines.common.block.LegacyProgressMachineBlock;
+import com.enderio.machines.common.blockentity.base.LegacyMachineBlockEntity;
 import com.enderio.machines.common.blocks.base.inventory.MachineInventory;
 import com.enderio.machines.common.blocks.base.inventory.MachineInventoryLayout;
 import com.enderio.machines.common.blocks.base.state.MachineState;
@@ -18,6 +19,7 @@ import com.enderio.machines.common.init.MachineDataComponents;
 import com.enderio.machines.common.io.IOConfig;
 import com.enderio.machines.common.io.SidedIOConfigurable;
 import com.enderio.machines.common.io.TransferUtil;
+import com.enderio.machines.common.network.CycleIOConfigPacket;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -45,8 +47,11 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.fml.LogicalSide;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.ICapabilityProvider;
+import net.neoforged.neoforge.client.model.data.ModelData;
+import net.neoforged.neoforge.client.model.data.ModelProperty;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -61,6 +66,8 @@ public abstract class MachineBlockEntity extends EIOBlockEntity
 
     public static final ICapabilityProvider<MachineBlockEntity, Direction, IItemHandler> ITEM_HANDLER_PROVIDER = (be,
             side) -> be.inventory != null ? be.inventory.getForSide(side) : null;
+
+    private static final ModelProperty<IOConfigurable> IO_CONFIG_PROPERTY = LegacyMachineBlockEntity.IO_CONFIG_PROPERTY;
 
     @Nullable
     private final MachineInventory inventory;
@@ -254,6 +261,28 @@ public abstract class MachineBlockEntity extends EIOBlockEntity
 
         Direction localSide = translateIOSide(side);
         setIOConfig(ioConfig.withMode(localSide, mode));
+
+        // Invalidate caps
+        level.invalidateCapabilities(worldPosition);
+        level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_ALL);
+    }
+
+    @Override
+    public ModelData getModelData() {
+        if (!shouldRenderIOConfigOverlay()) {
+            return ModelData.EMPTY;
+        }
+
+        return ModelData.builder().with(IO_CONFIG_PROPERTY, this).build();
+    }
+
+    @UseOnly(LogicalSide.CLIENT)
+    private void clientIOConfigChanged() {
+        if (shouldRenderIOConfigOverlay()) {
+            requestModelDataUpdate();
+        }
+
+        level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_ALL);
     }
 
     @Override
@@ -457,11 +486,15 @@ public abstract class MachineBlockEntity extends EIOBlockEntity
             // TODO: custom sound when sound manager is up and running??
 
             return ItemInteractionResult.sidedSuccess(level.isClientSide());
+        } else {
+            if (level.isClientSide()) {
+                if (side != null && isIOConfigMutable()) {
+                    PacketDistributor.sendToServer(new CycleIOConfigPacket(worldPosition, side));
+                }
+            }
+
+            return ItemInteractionResult.sidedSuccess(level.isClientSide());
         }
-
-        // TODO: IOConfig packet.
-
-        return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
     }
 
     // endregion
@@ -527,6 +560,10 @@ public abstract class MachineBlockEntity extends EIOBlockEntity
             removeData(MachineAttachments.IO_CONFIG);
         } else if (tag.contains(MachineNBTKeys.IO_CONFIG)) {
             ioConfig = IOConfig.parseOptional(registries, tag.getCompound(MachineNBTKeys.IO_CONFIG));
+
+            if (level != null && level.isClientSide) {
+                clientIOConfigChanged();
+            }
         }
 
         if (supportsRedstoneControl()) {

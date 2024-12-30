@@ -24,7 +24,7 @@ public class EnchanterMenu extends BaseBlockEntityMenu<EnchanterBlockEntity> {
     }
 
     public EnchanterMenu(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
-        super(MachineMenus.ENCHANTER.get(), MachineBlockEntities.ENCHANTER.get(), containerId, playerInventory, buf);
+        super(MachineMenus.ENCHANTER.get(), containerId, playerInventory, buf, MachineBlockEntities.ENCHANTER.get());
         addSlots();
     }
 
