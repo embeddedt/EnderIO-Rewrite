@@ -1,26 +1,36 @@
 package com.enderio.machines.common.blocks.enderface;
 
+import com.enderio.base.api.travel.TravelTarget;
+import com.enderio.base.api.travel.TravelTargetApi;
 import com.enderio.core.common.blockentity.EnderBlockEntity;
+import com.enderio.core.common.network.NetworkDataSlot;
 import com.enderio.machines.common.config.MachinesConfig;
 import com.enderio.machines.common.init.MachineBlockEntities;
+import com.enderio.machines.common.travel.EnderfaceTravelTarget;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.SectionPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
+
+import java.util.Optional;
 
 public class EnderfaceBlockEntity extends EnderBlockEntity {
     private float lastUiPitch = -45;
     private float lastUiYaw = 45;
     private float lastUiDistance = 10;
 
+    private final NetworkDataSlot<EnderfaceTravelTarget> travelTargetDataSlot;
+
     public EnderfaceBlockEntity(BlockPos worldPosition, BlockState blockState) {
         super(MachineBlockEntities.ENDERFACE.get(), worldPosition, blockState);
+
+        travelTargetDataSlot = addDataSlot(
+            EnderfaceTravelTarget.DATA_SLOT_TYPE.create(this::getOrCreateTravelTarget, this::setTravelTarget));
     }
 
     @Override
@@ -51,6 +61,21 @@ public class EnderfaceBlockEntity extends EnderBlockEntity {
 
     public void setLastUiDistance(float lastUiDistance) {
         this.lastUiDistance = lastUiDistance;
+    }
+
+    private EnderfaceTravelTarget getOrCreateTravelTarget() {
+        Optional<TravelTarget> travelTarget = TravelTargetApi.INSTANCE.get(level, worldPosition);
+        if (travelTarget.isPresent() && travelTarget.get() instanceof EnderfaceTravelTarget anchorTravelTarget) {
+            return anchorTravelTarget;
+        }
+
+        EnderfaceTravelTarget anchorTravelTarget = new EnderfaceTravelTarget(worldPosition);
+        setTravelTarget(anchorTravelTarget);
+        return anchorTravelTarget;
+    }
+
+    private void setTravelTarget(EnderfaceTravelTarget target) {
+        TravelTargetApi.INSTANCE.set(level, target);
     }
 
     public boolean canBeUsedByPlayer(Player player) {

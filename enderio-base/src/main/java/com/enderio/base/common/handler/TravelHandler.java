@@ -99,6 +99,12 @@ public class TravelHandler {
                 .isPresent();
     }
 
+    public static boolean specialAction(Level level, Player player) {
+        return getSpecialActionTarget(player)
+            .filter(iTravelTarget -> specialActionOnTarget(level, player, iTravelTarget))
+            .isPresent();
+    }
+
     public static boolean blockElevatorTeleport(Level level, Player player, Direction direction, boolean sendToServer) {
         if (direction.getStepY() != 0) {
             return getElevatorAnchorTarget(player, direction)
@@ -131,6 +137,10 @@ public class TravelHandler {
             return true;
         }
         return false;
+    }
+
+    private static boolean specialActionOnTarget(Level level, Player player, TravelTarget target) {
+        return target.executeSpecialAction(level, player);
     }
 
     public static Optional<Vec3> teleportPosition(Level level, Player player) {
@@ -223,6 +233,18 @@ public class TravelHandler {
             return traversePos;
         }
         return null;
+    }
+
+    public static Optional<TravelTarget> getSpecialActionTarget(Player player) {
+        Vec3 positionVec = player.position().add(0, player.getEyeHeight(), 0);
+
+        return TravelTargetApi.INSTANCE.getInItemRange(player.level(), player.blockPosition())
+            .filter(target -> target.canPerformSpecialAction())
+            .filter(target -> target.pos().distToCenterSqr(player.position()) > MIN_TELEPORTATION_DISTANCE_SQUARED)
+            .filter(target -> Math.abs(getAngleRadians(positionVec, target.pos(), player.getYRot(),
+                player.getXRot())) <= Math.toRadians(15))
+            .min(Comparator.comparingDouble(target -> Math
+                .abs(getAngleRadians(positionVec, target.pos(), player.getYRot(), player.getXRot()))));
     }
 
     public static Optional<TravelTarget> getTeleportAnchorTarget(Player player) {
