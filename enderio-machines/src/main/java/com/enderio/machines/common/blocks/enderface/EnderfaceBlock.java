@@ -1,7 +1,9 @@
 package com.enderio.machines.common.blocks.enderface;
 
+import com.enderio.base.api.travel.TravelTargetApi;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -18,6 +20,15 @@ public class EnderfaceBlock extends Block implements EntityBlock {
     @Override
     protected MapCodec<? extends Block> codec() {
         return CODEC;
+    }
+
+    @Override
+    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+        if (level.getBlockEntity(pos) instanceof EnderfaceBlockEntity) {
+            TravelTargetApi.INSTANCE.removeAt(level, pos);
+        }
+
+        super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
     @Override

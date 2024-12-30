@@ -18,11 +18,14 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
+import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.levelgen.SingleThreadedRandomSource;
@@ -49,6 +52,7 @@ public class EnderfaceScreen extends Screen {
     private static final Object2ObjectOpenHashMap<RenderType, ByteBufferBuilder> ENDERFACE_BUFFERS = new Object2ObjectOpenHashMap<>();
     private static final List<RenderType> LAYERS_BEFORE_BLOCK_ENTITIES = RenderType.chunkBufferLayers().stream().filter(l -> l != RenderType.translucent()).toList();
     private static final List<RenderType> LAYERS_AFTER_BLOCK_ENTITIES = List.of(RenderType.translucent());
+    private static final boolean DEBUG_SELECTION_POSITION = false;
     private static final Vec3 RAY_ORIGIN = new Vec3(1.5, 1.5, 1.5);
     private static final Vec3 RAY_START = new Vec3(1.5, 1.5, -1);
     private static final Vec3 RAY_END = new Vec3(1.5, 1.5, 3);
@@ -90,6 +94,7 @@ public class EnderfaceScreen extends Screen {
 
     private BlockPos selectedPos;
     private Direction selectedSide;
+    private Vec3 selectedLocation;
 
     private Object2ObjectOpenHashMap<RenderType, BufferBuilder> worldBufferBuilders = new Object2ObjectOpenHashMap<>();
 
@@ -316,6 +321,15 @@ public class EnderfaceScreen extends Screen {
 
         graphics.bufferSource().endBatch();
 
+        if (DEBUG_SELECTION_POSITION && selectedLocation != null) {
+            graphics.pose().pushPose();
+            graphics.pose().translate(selectedLocation.x - origin.x, selectedLocation.y - origin.y, selectedLocation.z - origin.z);
+            dispatcher.renderSingleBlock(Blocks.OAK_PLANKS.defaultBlockState(), graphics.pose(), graphics.bufferSource(), LightTexture.FULL_BRIGHT,
+                OverlayTexture.NO_OVERLAY);
+            graphics.bufferSource().endBatch();
+            graphics.pose().popPose();
+        }
+
         ENDERFACE_BUFFERS.values().forEach(ByteBufferBuilder::clear);
         worldBufferBuilders.clear();
 
@@ -356,7 +370,7 @@ public class EnderfaceScreen extends Screen {
         return shape.clip(start, end, POS);
     }
 
-    private record HitCandidate(BlockHitResult hitResult, BlockPos realHitPos) {}
+    private record HitCandidate(BlockHitResult hitResult, BlockPos realHitPos, Vec3 locationOffset) {}
 
     private void findSelection(int mouseX, int mouseY) {
         Quaternionf rotPitch = Axis.XN.rotationDegrees(pitch);
@@ -383,7 +397,7 @@ public class EnderfaceScreen extends Screen {
             var hitResult = raycast(pos, diffX, diffY, rayTransform);
 
             if (hitResult != null && hitResult.getType() != HitResult.Type.MISS) {
-                candidates.add(new HitCandidate(hitResult, pos.immutable()));
+                candidates.add(new HitCandidate(hitResult, pos.immutable(), hitResult.getLocation().subtract(POS.getX(), POS.getY(), POS.getZ())));
             }
         });
 
@@ -394,6 +408,7 @@ public class EnderfaceScreen extends Screen {
         if (candidate != null) {
             selectedPos = candidate.realHitPos();
             selectedSide = candidate.hitResult.getDirection();
+            selectedLocation = candidate.locationOffset();
         }
     }
 
@@ -426,9 +441,15 @@ public class EnderfaceScreen extends Screen {
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (button == InputConstants.MOUSE_BUTTON_RIGHT && selectedPos != null) {
+            if (DEBUG_SELECTION_POSITION) {
+                System.out.println(selectedPos);
+                System.out.println(selectedSide);
+                System.out.println(selectedLocation);
+                System.out.println(world.getBlockState(selectedPos));
+            }
             // Open menu here
             PacketDistributor.sendToServer(new EnderfaceInteractPacket(new BlockHitResult(
-                selectedPos.getCenter(),
+                selectedLocation,
                 selectedSide,
                 selectedPos,
                 false

@@ -2,6 +2,7 @@ package com.enderio.machines.common.blocks.enderface;
 
 import com.enderio.base.api.travel.TravelTarget;
 import com.enderio.base.api.travel.TravelTargetApi;
+import com.enderio.base.common.config.BaseConfig;
 import com.enderio.core.common.blockentity.EnderBlockEntity;
 import com.enderio.core.common.network.NetworkDataSlot;
 import com.enderio.machines.common.config.MachinesConfig;
@@ -80,7 +81,8 @@ public class EnderfaceBlockEntity extends EnderBlockEntity {
 
     public boolean canBeUsedByPlayer(Player player) {
         // TODO public/private enderfaces
-        return true;
+        int usageRange = BaseConfig.COMMON.ITEMS.TRAVELLING_TO_BLOCK_RANGE.get();
+        return worldPosition.distToCenterSqr(player.position()) <= usageRange * usageRange;
     }
 
     public static boolean canPlayerInteractWithBlock(Player player, Level level, BlockPos pos) {

@@ -4,6 +4,7 @@
     "compatibilityLevel" : "JAVA_17",
     "mixins" : [
         "RecipeManagerMixin",
+        "PlayerMixin",
         "AbstractCookingRecipeAccessor"
     ],
     "minVersion" : "0.8"
