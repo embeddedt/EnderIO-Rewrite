@@ -22,6 +22,7 @@ import com.enderio.machines.common.blocks.base.blockentity.PoweredMachineBlockEn
 import com.enderio.machines.common.blocks.crafter.CrafterBlockEntity;
 import com.enderio.machines.common.blocks.drain.DrainBlockEntity;
 import com.enderio.machines.common.blocks.enchanter.EnchanterBlockEntity;
+import com.enderio.machines.common.blocks.enderface.EnderfaceBlockEntity;
 import com.enderio.machines.common.blocks.fluid_tank.FluidTankBlockEntity;
 import com.enderio.machines.common.blocks.impulse_hopper.ImpulseHopperBlockEntity;
 import com.enderio.machines.common.blocks.obelisks.aversion.AversionObeliskBlockEntity;
@@ -72,6 +73,9 @@ public class MachineBlockEntities {
 
     public static final RegiliteBlockEntity<EnchanterBlockEntity> ENCHANTER = register("enchanter",
             EnchanterBlockEntity::new, MachineBlocks.ENCHANTER);
+
+    public static final RegiliteBlockEntity<EnderfaceBlockEntity> ENDERFACE = register("enderface",
+        EnderfaceBlockEntity::new, MachineBlocks.ENDERFACE);
 
     public static final RegiliteBlockEntity<PrimitiveAlloySmelterBlockEntity> PRIMITIVE_ALLOY_SMELTER = register(
             "primitive_alloy_smelter", PrimitiveAlloySmelterBlockEntity::new, MachineBlocks.PRIMITIVE_ALLOY_SMELTER)
