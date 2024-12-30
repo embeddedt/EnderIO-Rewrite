@@ -136,6 +136,7 @@ public class MachineBlocks {
                 .isViewBlocking((pState, pLevel, pPos) -> false))
         .setLootTable(MachinesLootTable::copyComponents)
         .addBlockTags(BlockTags.NEEDS_IRON_TOOL, BlockTags.MINEABLE_WITH_PICKAXE)
+        .setTranslation("Ender IO")
         .setBlockStateProvider((prov, ctx) -> prov.simpleBlock(ctx.get(),
             prov.models().cubeAll("enderface", EnderIOBase.loc("block/enderface")).renderType("translucent")))
         .createBlockItem(ITEM_REGISTRY, item -> item.setTab(EIOCreativeTabs.MACHINES));
