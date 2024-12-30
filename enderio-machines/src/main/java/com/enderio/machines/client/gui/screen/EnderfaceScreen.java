@@ -214,7 +214,7 @@ public class EnderfaceScreen extends Screen {
         }
     }
 
-    private void renderWorld(GuiGraphics graphics, float partialTick) {
+    private Quaternionf getGuiWorldTransform() {
         Quaternionf rotPitch = Axis.XN.rotationDegrees(pitch);
         Quaternionf rotYaw = Axis.YP.rotationDegrees(yaw);
 
@@ -226,24 +226,14 @@ public class EnderfaceScreen extends Screen {
         // Rotate around Y (yaw)
         blockTransform.mul(rotYaw);
 
+        return blockTransform;
+    }
+
+    private void renderWorld(GuiGraphics graphics, float partialTick) {
+        Quaternionf blockTransform = getGuiWorldTransform();
+
         // Flush out all previously rendered GUI content
         graphics.flush();
-
-        // Swap matrices
-        /*
-        Matrix4f oldProjMatrix = RenderSystem.getProjectionMatrix();
-        var oldSorting = RenderSystem.getVertexSorting();
-
-        Matrix4f projMatrix = new Matrix4f().perspective(
-            (float)(70 * (float) (Math.PI / 180.0)),
-            (float)this.minecraft.getWindow().getWidth() / (float)this.minecraft.getWindow().getHeight(),
-            0.05F,
-            this.range * 8
-        );
-
-        RenderSystem.setProjectionMatrix(projMatrix, VertexSorting.DISTANCE_TO_ORIGIN);
-
-         */
 
         graphics.pose().pushPose();
         graphics.pose().translate(width / 2f, height / 2f, 1000);
@@ -324,6 +314,8 @@ public class EnderfaceScreen extends Screen {
         if (DEBUG_SELECTION_POSITION && selectedLocation != null) {
             graphics.pose().pushPose();
             graphics.pose().translate(selectedLocation.x - origin.x, selectedLocation.y - origin.y, selectedLocation.z - origin.z);
+            graphics.pose().scale(0.3f, 0.3f, 0.3f);
+            graphics.pose().translate(-0.5, -0.5, -0.5);
             dispatcher.renderSingleBlock(Blocks.OAK_PLANKS.defaultBlockState(), graphics.pose(), graphics.bufferSource(), LightTexture.FULL_BRIGHT,
                 OverlayTexture.NO_OVERLAY);
             graphics.bufferSource().endBatch();
@@ -409,6 +401,10 @@ public class EnderfaceScreen extends Screen {
             selectedPos = candidate.realHitPos();
             selectedSide = candidate.hitResult.getDirection();
             selectedLocation = candidate.locationOffset();
+        } else {
+            selectedLocation = null;
+            selectedPos = null;
+            selectedSide = null;
         }
     }
 
